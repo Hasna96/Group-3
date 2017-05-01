@@ -151,53 +151,60 @@ bad_words=["rt","@",".","#","4r5e","5h1t","5hit","a55","anal","anus","ar5e","arr
 
 #--- get the tweets from the table and proccess them with nlp -- #
 #connect to db 
-connection = pymysql.connect(host='localhost', user='root', db='tweets', charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
-
+connection = pymysql.connect(host='localhost',
+                             user='root',
+                             password='',
+                             db='tweets',
+                             charset='utf8mb4',
+                             cursorclass=pymysql.cursors.DictCursor)
 #access the table tweets_test
 tweet_keywords = []
-with connection.cursor() as cursor:
-	sql = "SELECT * FROM `tweets_test`"
-	try:
-		cursor.execute(sql)
-		results = cursor.fetchall()
-		for tweet in results:
-			tweet_string = (tweet['tweet']).lower()
-			for char in tweet_string:
-				if char in " ?.!/;:#@":
-					tweet_string = tweet_string.replace(char,' ')
+
+try:
+    
+    with connection.cursor() as cursor:
+        # Read a single record
+        sql = "SELECT * FROM `tweets_test`"
+
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for tweet in results:
+            tweet_string = (tweet['tweet']).lower()
+            for char in tweet_string:
+                if char in " ?.!/;:#@":
+                    tweet_string = tweet_string.replace(char,' ')
 
 
-			tweet_id = tweet['id']
-			print(tweet_string)
+            tweet_id = tweet['tweet_id']
+            print(tweet_string)
+            #extract the question to get only the important keywords
+            tweet_extracted = NPExtractor(tweet_string)
+            result2 = tweet_extracted.extract()
+            #list through each keyword and capitalise it and append it in our input keywords list
+            for keyword in result2:
+        
+                if keyword not in bad_words:
+                    #tweet_keywords.append(keyword.title())
+                    tweet_keywords.append((tweet_id,keyword.title()))
+            #***specify question type (who 'person', where ' place', what 'thing, weather ..etc')
 
-			
-			#extract the question to get only the important keywords
-			tweet_extracted = NPExtractor(tweet_string)
-			result2 = tweet_extracted.extract()
-			#list through each keyword and capitalise it and append it in our input keywords list
-			for keyword in result2:
-		
-				if keyword not in bad_words:
-					#tweet_keywords.append(keyword.title())
-					tweet_keywords.append((tweet_id,keyword.title()))
-			#***specify question type (who 'person', where ' place', what 'thing, weather ..etc')
-
-	except:
-		print("Error: unable to fecth data")
-
+finally:
+    pass
 
 #insert keywords and id from tweets into keywords table to compare them with input keywords and create an output
-with connection.cursor() as cursor:
-	for keyword in tweet_keywords:
-		id_of_tweet = keyword[0]
-		keyword_string = keyword[1]
-		sql = "INSERT INTO `tweets_keywords` (`id`, `keyword`) VALUES (%s, %s)"
-		cursor.execute(sql, (id_of_tweet, keyword_string))
-		# connection is not autocommit by default. So you must commit to save
-		# your changes.
-		connection.commit()
+try:
 
-
+    with connection.cursor() as cursor:
+    	for keyword in tweet_keywords:
+    		id_of_tweet = keyword[0]
+    		keyword_string = keyword[1]
+    		sql = "INSERT INTO `tweets_keywords` (`tweet_id`, `keyword`) VALUES (%s, %s)"
+    		cursor.execute(sql, (id_of_tweet, keyword_string))
+    		# connection is not autocommit by default. So you must commit to save
+    		# your changes.
+    		connection.commit()
+finally:
+    connection.close()
 #### ---- input part ----- ####
 #take input as the question from user
 
@@ -208,16 +215,15 @@ if any(question.find(s)>=0 for s in bad_words):
 else:
     pass 
     ## plamen, eva u need to start from here
-    ## ----- OUT PART MUST BE DONE HEREEEEE -------------------------#################
 
-	#list to store input keywords to search for them in the tweets keywords
-	input_keywords = []
-	#extract the question to get only the important keywords
-	question_extracted = NPExtractor(question)
-	result = question_extracted.extract()
-	#list through each keyword and capitalise it and append it in our input keywords list
+#list to store input keywords to search for them in the tweets keywords
+#input_keywords = []
+#extract the question to get only the important keywords
+#question_extracted = NPExtractor(question)
+#result = question_extracted.extract()
+#list through each keyword and capitalise it and append it in our input keywords list
 
-	#for keyword in result:
-		input_keywords.append(keyword.title())
-	#***specify question type (who 'person', where ' place', what 'thing, weather ..etc')
-	print(input_keywords)
+#for keyword in result:
+#   input_keywords.append(keyword.title())
+#***specify question type (who 'person', where ' place', what 'thing, weather ..etc')
+#print(input_keywords)
