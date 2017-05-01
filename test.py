@@ -10,8 +10,8 @@ from nltk.tokenize import word_tokenize
 
 #--- nlp part --  #
 #specify the stanford tagger
-st = StanfordNERTagger('/Users/Hasna/Desktop/stanford-ner-2016-10-31/classifiers/english.muc.7class.distsim.crf.ser.gz',
-					   '/Users/Hasna/Desktop/stanford-ner-2016-10-31/stanford-ner.jar',
+st = StanfordNERTagger('E:/University/Group/New Folder/english.muc.7class.distsim.crf.ser.gz',
+                       'E:/University/Group/New Folder/stanford-ner.jar',
 					   encoding='utf-8')
 
 
@@ -151,6 +151,7 @@ bad_words=["rt","@",".","#","4r5e","5h1t","5hit","a55","anal","anus","ar5e","arr
 
 #--- get the tweets from the table and proccess them with nlp -- #
 #connect to db 
+
 connection = pymysql.connect(host='localhost',
                              user='root',
                              password='',
@@ -176,7 +177,7 @@ try:
 
 
             tweet_id = tweet['tweet_id']
-            print(tweet_string)
+            #print(tweet_string)
             #extract the question to get only the important keywords
             tweet_extracted = NPExtractor(tweet_string)
             result2 = tweet_extracted.extract()
@@ -204,26 +205,88 @@ try:
     		# your changes.
     		connection.commit()
 finally:
-    connection.close()
+    pass
+    #connection.close()
 #### ---- input part ----- ####
 #take input as the question from user
 
 question = str.lower(input("Enter a question: "))
 
 if any(question.find(s)>=0 for s in bad_words):
-     print("Quit Cursing!, I cant answer this question")
+     print("I cant answer this question")
+elif not question:
+    print("You have not entered a question")
 else:
     pass 
     ## plamen, eva u need to start from here
 
 #list to store input keywords to search for them in the tweets keywords
-#input_keywords = []
+input_keywords = []
 #extract the question to get only the important keywords
-#question_extracted = NPExtractor(question)
-#result = question_extracted.extract()
+question_extracted = NPExtractor(question)
+result = question_extracted.extract()
 #list through each keyword and capitalise it and append it in our input keywords list
 
-#for keyword in result:
-#   input_keywords.append(keyword.title())
+for keyword in result:
+   input_keywords.append(keyword.title())
 #***specify question type (who 'person', where ' place', what 'thing, weather ..etc')
 #print(input_keywords)
+
+keywords = []
+
+keywords2 = []
+list2 = []
+for keywordq in input_keywords:
+    try:
+        with connection.cursor() as cursor:
+        # Read a single record
+            sql = "SELECT * FROM `tweets_keywords`"
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            for tweet in results:
+                keyword = (tweet['keyword']).lower()
+                tweet_id = tweet['tweet_id']
+                keywords.append((tweet_id, keyword))
+               # print (keyword)
+                #print (keywords)
+            for key in keywords:
+                #print(key)
+                if key not in keywords2:
+                    keywords2.append(key)
+
+
+    finally:
+        pass
+
+    for key in keywords2:
+        #print(key[1])
+        #print(keywordq)
+        if keywordq.lower() == key[1]:
+            #print(key[0])
+            key_id = key[0]
+            try:
+                with connection.cursor() as cursor:
+                # Read a single record
+                    sql = "SELECT DISTINCT keyword FROM tweets_keywords WHERE tweet_id = %s "
+                    cursor.execute(sql, (key_id))
+                    results = cursor.fetchall()
+                    for result in results:
+                        #print(result['keyword'])
+                        np_extractor = NPExtractor(result['keyword'].title())
+                        result = np_extractor.extract()
+                        calssified_text = st.tag(result)
+                        #print(calssified_text)
+                        list2.append(calssified_text)
+            finally:
+                pass
+
+
+
+print (list2)
+   #     return tweet_id    
+#print (keywords2)
+for i in list2:
+    print (i[0][1])
+    if i[0][1]=='PERSON':
+        print (i[0][0]+' is a '+list2[1][0][0]+' '+ list2[1][1][0])
+   
