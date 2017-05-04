@@ -1,4 +1,12 @@
+#!/usr/bin/python3
 #import modules , libraries
+#cgi modules
+import cgi
+import cgitb
+cgitb.enable()
+
+form = cgi.FieldStorage()
+input_question = form.getvalue("inputQuestion")
 #sql modules
 import pymysql
 import pymysql.cursors
@@ -7,12 +15,13 @@ import nltk
 from nltk.corpus import brown
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
+from nltk import tag
 
 #--- nlp part --  #
 #specify the stanford tagger
-st = StanfordNERTagger('E:/University/Group/New Folder/english.muc.7class.distsim.crf.ser.gz',
-                       'E:/University/Group/New Folder/stanford-ner.jar',
-					   encoding='utf-8')
+st = StanfordNERTagger('/Users/Hasna/Desktop/stanford-ner-2016-10-31/classifiers/english.muc.7class.distsim.crf.ser.gz',
+                       '/Users/Hasna/Desktop/stanford-ner-2016-10-31/stanford-ner.jar',
+                       encoding='utf-8')
 
 
 #nlp functions 
@@ -99,7 +108,8 @@ class NPExtractor(object):
 
         matches = []
         for t in tags:
-            if t[1] == "NNP" or t[1] == "NNI" or t[1] == "NN" or t[1] == "JJ" or t[1] == "JJR" :
+ 
+            if t[1] == "NNP" or t[1] == "NNI" or t[1] == "NN" or t[1] == "JJ" or t[1] == "JJR" or t[1] == "NR" or t[1] == "CD"  :
             #if t[1] == "NNP" or t[1] == "NNI" or t[1] == "NN":
                 matches.append(t[0])
         return matches
@@ -196,14 +206,14 @@ finally:
 try:
 
     with connection.cursor() as cursor:
-    	for keyword in tweet_keywords:
-    		id_of_tweet = keyword[0]
-    		keyword_string = keyword[1]
-    		sql = "INSERT INTO `tweets_keywords` (`tweet_id`, `keyword`) VALUES (%s, %s)"
-    		cursor.execute(sql, (id_of_tweet, keyword_string))
-    		# connection is not autocommit by default. So you must commit to save
-    		# your changes.
-    		connection.commit()
+        for keyword in tweet_keywords:
+            id_of_tweet = keyword[0]
+            keyword_string = keyword[1]
+            sql = "INSERT INTO `tweets_keywords` (`tweet_id`, `keyword`) VALUES (%s, %s)"
+            cursor.execute(sql, (id_of_tweet, keyword_string))
+            # connection is not autocommit by default. So you must commit to save
+            # your changes.
+            connection.commit()
 finally:
     pass
     #connection.close()
@@ -211,82 +221,157 @@ finally:
 #take input as the question from user
 
 question = str.lower(input("Enter a question: "))
+#question = str.lower(inputQuestion)
 
 if any(question.find(s)>=0 for s in bad_words):
+    #print html
      print("I cant answer this question")
 elif not question:
+    #print html
     print("You have not entered a question")
+elif len(question.split()) == 1:
+    print("Please ask something useful")
 else:
     pass 
-    ## plamen, eva u need to start from here
+        ## plamen, eva u need to start from here
 
-#list to store input keywords to search for them in the tweets keywords
-input_keywords = []
-#extract the question to get only the important keywords
-question_extracted = NPExtractor(question)
-result = question_extracted.extract()
-#list through each keyword and capitalise it and append it in our input keywords list
+    #list to store input keywords to search for them in the tweets keywords
+    input_keywords = []
+    #extract the question to get only the important keywords
+    question_extracted = NPExtractor(question)
+    result = question_extracted.extract()
 
-for keyword in result:
-   input_keywords.append(keyword.title())
-#***specify question type (who 'person', where ' place', what 'thing, weather ..etc')
-#print(input_keywords)
+    #list through each keyword and capitalise it and append it in our input keywords list
 
-keywords = []
+    for keyword in result:
+       input_keywords.append(keyword.title())
+    #***specify question type (who 'person', where ' place', what 'thing, weather ..etc')
+    #print(input_keywords)
 
-keywords2 = []
-list2 = []
-for keywordq in input_keywords:
-    try:
-        with connection.cursor() as cursor:
-        # Read a single record
-            sql = "SELECT * FROM `tweets_keywords`"
-            cursor.execute(sql)
-            results = cursor.fetchall()
-            for tweet in results:
-                keyword = (tweet['keyword']).lower()
-                tweet_id = tweet['tweet_id']
-                keywords.append((tweet_id, keyword))
-               # print (keyword)
-                #print (keywords)
-            for key in keywords:
-                #print(key)
-                if key not in keywords2:
-                    keywords2.append(key)
+    keywords = []
 
-
-    finally:
-        pass
-
-    for key in keywords2:
-        #print(key[1])
-        #print(keywordq)
-        if keywordq.lower() == key[1]:
-            #print(key[0])
-            key_id = key[0]
+    keywords2 = []
+    list2 = []
+    i=0
+    for keywordq in input_keywords:
+        if i == 0:
             try:
                 with connection.cursor() as cursor:
                 # Read a single record
-                    sql = "SELECT DISTINCT keyword FROM tweets_keywords WHERE tweet_id = %s "
-                    cursor.execute(sql, (key_id))
+                    sql = "SELECT * FROM `tweets_keywords`"
+                    cursor.execute(sql)
                     results = cursor.fetchall()
-                    for result in results:
-                        #print(result['keyword'])
-                        np_extractor = NPExtractor(result['keyword'].title())
-                        result = np_extractor.extract()
-                        calssified_text = st.tag(result)
-                        #print(calssified_text)
-                        list2.append(calssified_text)
+                    for tweet in results:
+                        keyword = (tweet['keyword']).lower()
+                        tweet_id = tweet['tweet_id']
+                        keywords.append((tweet_id, keyword))
+                       # print (keyword)
+                        #print (keywords)
+                    for key in keywords:
+                        #print(key)
+                        if key not in keywords2:
+                            keywords2.append(key)
+
+
             finally:
                 pass
+            i= i+1
+            for key in keywords2:
+                
+                if keywordq.lower() == key[1]:
+
+                    key_id = key[0]
+                    
+                    #print(i)
+                    try:
+                        with connection.cursor() as cursor:
+                        # Read a single record
+                            sql = "SELECT DISTINCT keyword FROM tweets_keywords WHERE tweet_id = %s "
+                            cursor.execute(sql, (key_id))
+                            results = cursor.fetchall()
+                            #print(results)
+                            for result in results:
+                         
+                                np_extractor = NPExtractor(result['keyword'].title())
+                                result = np_extractor.extract()
+                       
+                                if len(result) == 1:
+                                    #print('yes')
+                                    tokenized_text = word_tokenize((result[0]).title())
+                                  
+                                    calssified_text = st.tag(tokenized_text)
+                                   
+                                    list2.append(calssified_text)
 
 
+                                   
+                                else:
 
-print (list2)
-   #     return tweet_id    
-#print (keywords2)
-for i in list2:
-    print (i[0][1])
-    if i[0][1]=='PERSON':
-        print (i[0][0]+' is a '+list2[1][0][0]+' '+ list2[1][1][0])
-   
+
+                                    calssified_text = st.tag(result)
+                             
+                                    list2.append(calssified_text)
+                                  
+
+
+                    finally:
+                        pass
+
+                    break  
+        else:
+
+            break 
+
+    #print(list2)
+    person = []
+    objects = []
+    organisation = []
+    location = []
+    weather = []
+
+    for item in list2:
+
+        numb_items = len(item)
+        #print(numb_items)
+        if numb_items>1:
+            for item2 in item:
+                #print(item2[1])
+                if item2[1] == 'PERSON':
+                    person.append(item2[0])
+                elif item2[1] == 'LOCATION':
+                    location.append(item2[0])
+                elif item2[1] == 'O':
+                    if item2[0] != 'Weather':
+                        objects.append(item2[0])
+                    else:
+                        weather.append(item2[0])
+                        #print('yes')
+        elif numb_items==0:
+            pass
+        else:
+
+            
+            if item[0][1] == 'PERSON':
+                person.append(item[0][0])
+            elif item[0][1] == 'LOCATION':
+                location.append(item[0][0])
+            elif item[0][1] == 'O':
+               
+                if item[0][0] != 'Weather':
+                    objects.append(item[0][0])
+                else:
+                    weather.append(item[0][0])
+                    #print('yes')
+            
+                    
+    if len(weather)>=1:
+        print('the weather in cardiff is ' + ' '.join(objects) )
+
+    elif len(person) >=1 or len(objects) >=1 or len(location) >=1:
+        print(' '.join(person) + ' is a '+ ' '.join(objects)+' in ' + ' '.join(location))
+    else:
+        print("I am sorry, i dont have the knowledge for this now")
+  
+
+
+    
