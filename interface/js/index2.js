@@ -5,7 +5,6 @@ var $messages = $('.messages-content'),
 $(window).load(function() {
   $messages.mCustomScrollbar();
   setTimeout(function() {
-    fakeMessage();
   }, 100);
 });
 
@@ -48,9 +47,13 @@ $(window).on('keydown', function(e) {
     return false;
   }
 })
+$("#cancel_edit").click(function(){
+        window.open('','_parent',''); 
+        window.close(); 
+    });
 
 var Fake = [
-  'HI, I am Dylan the Dragon. Ask me a question'
+  'HI, I am Dylan the Dragon. Ask me a question.',
 ]
 
 function fakeMessage() {
@@ -69,10 +72,3 @@ function fakeMessage() {
   }, 1000 + (Math.random() * 20) * 100);
 
 }
-document.getElementById("a")
-    .addEventListener("keyup", function(event) {
-    event.preventDefault();
-    if (event.keyCode == 13) {
-        document.getElementById("b").click();
-    }
-});
