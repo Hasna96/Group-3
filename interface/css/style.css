@@ -64,8 +64,8 @@ Chat
   left: 50%;
   -webkit-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
-  width: 300px;
-  height: 80vh;
+  width: 500px;
+  height: 30vh;
   max-height: 500px;
   z-index: 3;
   overflow: hidden;
@@ -122,23 +122,23 @@ Chat Title
 }
 .chat-title h1, .chat-title h2 {
   font-weight: normal;
-  font-size: 10px;
+  font-size: 13.5px;
   margin: 0;
   padding: 0;
 }
 .chat-title h2 {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 .chat-title .avatar {
   position: absolute;
   z-index: 2;
-  top: 8px;
-  left: 9px;
+  top: 7px;
+  left: 6px;
   border-radius: 30px;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   overflow: hidden;
   margin: 0;
   padding: 0;
@@ -326,7 +326,7 @@ Message Box
   resize: none;
   color: rgba(255, 255, 255, 0.7);
   font-size: 11px;
-  height: 17px;
+  height: 20px;
   margin: 0;
   padding-right: 20px;
   width: 265px;
@@ -342,7 +342,7 @@ Message Box
   color: #fff;
   border: none;
   background: #248A52;
-  font-size: 10px;
+  font-size: 13.5px;
   text-transform: uppercase;
   line-height: 1;
   padding: 6px 10px;
@@ -354,7 +354,75 @@ Message Box
 .message-box .message-submit:hover {
   background: #1D7745;
 }
+.message-box .go-back {
+  position: absolute;
+  z-index: 2;
+  top: 9px;
+  right: 10px;
+  color: #fff;
+  border: none;
+  background: #248A52;
+  font-size: 13.5px;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 10px;
+  outline: none !important;
+  -webkit-transition: background .2s ease;
+  transition: background .2s ease;
+}
+.message-box .go-back:hover {
+  background: #1D7745;
+}
+.message-box .quit {
+  position: absolute;
+  z-index: 2;
+  color: #fff;
+  border: none;
+  background: #248A52;
+  font-size: 13.5px;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 10px;
+  outline: none !important;
+  -webkit-transition: background .2s ease;
+  transition: background .2s ease;
+}
+.message-box .quit:hover {
+  background: #1D7745;
+}
+a:link {
+    text-decoration: none;
+}
 
+a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+a:active {
+    text-decoration: none;
+}
+
+a:link {
+    color: white;
+}
+
+a:visited {
+    color: white;
+}
+
+a:hover {
+    color: white;
+}
+
+a:active {
+    color: white;
+}
 /*--------------------
 Custom Srollbar
 --------------------*/
